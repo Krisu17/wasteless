@@ -36,6 +36,7 @@ const NewProduct = (props) => {
     const [barcode, setBarcode] = useState("");
     const [data, setData] = useState({
         product_name: "",
+        category: "",
         quantity_g: 0,
         quantity: 1,
         carbohydrates: 0,

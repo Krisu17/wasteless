@@ -12,22 +12,20 @@ import Container from '@material-ui/core/Container';
 import Card from "@material-ui/core/Card";
 import {be} from "constants/backendSetup.js";
 import {getCORSHeaders} from "utils/fetchTools";
-import {UserContext} from "context";
 import {Redirect} from "react-router-dom";
 import {path_list as paths_list} from "constants/routes";
 import {AlertContext} from "context/AlertContext";
 
 
-const loginUser = async (data) => {
-    let url = `${be.LOGIN}`;
+const requestSendingEmail = async (data) => {
+    let url = `${be.REQUEST_RESET_EMAIL}`;
     let headers = getCORSHeaders();
 
     let res = await fetch(url, {
         method: "POST",
         headers,
         body: JSON.stringify({
-            "username": data.login,
-            "password": data.password
+            "email": data.email,
         })
     });
     if (res.status === 200 || res.status === 201) {
@@ -58,19 +56,17 @@ const useStyles = makeStyles((theme) => ({
         margin: theme.spacing(3, 0, 2),
     },
     card: {
-         boxShadow: '0 1px 1px 1px lightblue',
+        boxShadow: '0 1px 1px 1px lightblue',
         marginTop: theme.spacing(5),
     },
 }));
 
-export default function LoginPage() {
+export default function SendResetEmail() {
 
     const [data, setData] = useState({
-        login: "",
-        password: "",
+        email: "",
     });
     const classes = useStyles();
-    const user = useContext(UserContext);
     const [disabled, setDisabled] = useState(false);
     const [validated, setValidated] = useState("false");
     const [redirect, setRedirect] = useState(undefined);
@@ -84,18 +80,12 @@ export default function LoginPage() {
         } else {
             setDisabled(true);
             try {
-                let {token, first_name, last_name, email} = await loginUser(data);
-                user.login(token, {
-                    first_name: first_name,
-                    last_name: last_name,
-                    email: email,
-                    username: data.login
-                });
-                alertC.current.showAlert("Login successful!", "success");
-                setRedirect(paths_list.PROFILE.route);
+                await requestSendingEmail(data);
+                alertC.current.showAlert("If given address is correct, reset email have been sent to your mailbox", "success");
+                setRedirect(paths_list.LOGIN.route);
             } catch(e) {
                 console.log(e);
-                alertC.current.showAlert("Something went wrong while trying to login user", "error");
+                alertC.current.showAlert("Wrong email format", "error");
             } finally {
                 setDisabled(false);
             }
@@ -112,7 +102,7 @@ export default function LoginPage() {
                         <LockOutlinedIcon />
                     </Avatar>
                     <Typography component="h1" variant="h5">
-                        Sign in
+                        Send reset email
                     </Typography>
                     <form className={classes.form} noValidate validated={validated} onSubmit={submitForm}>
                         <TextField
@@ -120,26 +110,13 @@ export default function LoginPage() {
                             margin="normal"
                             required
                             fullWidth
-                            id="login"
-                            label="Login"
-                            name="login"
-                            autoComplete="login"
+                            id="email"
+                            label="Email"
+                            name="email"
+                            autoComplete="email"
                             autoFocus
-                            value={data.login}
-                            onChange={e => setData({...data, login: e.target.value})}
-                        />
-                        <TextField
-                            variant="outlined"
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
-                            value={data.password}
-                            onChange={e => setData({...data, password: e.target.value})}
+                            value={data.email}
+                            onChange={e => setData({...data, email: e.target.value})}
                         />
                         {redirect && <Redirect to={redirect}/>}
                         <Button
@@ -150,12 +127,12 @@ export default function LoginPage() {
                             className={classes.submit}
                             disabled={disabled}
                         >
-                            {disabled ? "Loading..." : "Log in!"}
+                            {disabled ? "Loading..." : "Send reset email"}
                         </Button>
                         <Grid container>
                             <Grid item xs>
-                                <Link variant="body2" onClick={() => setRedirect(paths_list.RESET_PASSWORD_REQUEST.route)}>
-                                    Forgot password?
+                                <Link variant="body2" onClick={() => setRedirect(paths_list.LOGIN.route)}>
+                                    Login page
                                 </Link>
                             </Grid>
                             <Grid item>

@@ -11,7 +11,7 @@ import {getCORSHeaders} from "../../utils/fetchTools";
 import {be} from "../../constants/backendSetup";
 
 const fetchFridgesList = async (token) => {
-    const url = be.FRIDGE;
+    const url = be.PROFILE + 'fridges/';
     const headers = getCORSHeaders(token)
 
     const res = await fetch(url, {

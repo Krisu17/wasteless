@@ -46,9 +46,9 @@ const useStyles = makeStyles((theme) => ({
         flexGrow: 1,
     },
     fab: {
-        position: "absolute",
-        bottom: theme.spacing(2),
-        right: theme.spacing(2),
+        position: "fixed",
+        bottom: theme.spacing(1.5),
+        right: theme.spacing(8),
     },
     extendedIcon: {
         marginRight: theme.spacing(1),
@@ -103,22 +103,24 @@ export default function Album() {
     const fridgeId = fridge_id;
 
     for(let i = 0; i < productsList.length; i++) {
-        let newFormDate = mapDate(productsList[i]);
-        let now = new Date().getTime();
-        let dateOffset = (24*60*60*1000) * 3;
+        let newFormDate = getProductDate(productsList[i]);
+        newFormDate.setHours(0,0,0,0);
+        let now = new Date();
+        now.setHours(0,0,0,0);
+
         let c1 = (productsList[i].product_name.toUpperCase().charCodeAt(0) * 5) % 256;
         let c2 = (productsList[i].product_name.toUpperCase().charCodeAt(1) * 5) % 256;
         let c3 = (productsList[i].product_name.toUpperCase().charCodeAt(2) * 5) % 256;
-        productsList[i].dateToCompare = Date.parse(newFormDate) + (24*60*60*1000);
         productsList[i].backgroundColor = "rgb(" + c1 + "," + c2 + "," + c3 + ")";
 
-        if (now > productsList[i].dateToCompare){
+        if (now > newFormDate){
             productsList[i].color = "red";
-        } else if (now + dateOffset > productsList[i].dateToCompare) {
+        } else if (now.setDate(now.getDate() + 4) > newFormDate) {
             productsList[i].color = "orange";
         } else {
             productsList[i].color = "black";
         }
+        productsList[i].dateToCompare = newFormDate;
     }
 
     productsList.sort((a, b) => (a.dateToCompare > b.dateToCompare) ? 1 : -1);
@@ -153,11 +155,8 @@ export default function Album() {
         }
     }
 
-    function mapDate(product) {
-        let newDate = new Date(product.expiration_date);
-        let month = newDate.getMonth() + 1;
-        let newFormDate = month  + "." + newDate.getDay() + "." + newDate.getFullYear();
-        return newFormDate;
+    function getProductDate(product) {
+        return new Date(product.expiration_date);
     }
 
     return (
@@ -177,7 +176,7 @@ export default function Album() {
                                                 <CardHeader
                                                     avatar={
                                                         <Avatar aria-label="recipe" className={classes.avatar} style={{backgroundColor: product.backgroundColor}}>
-                                                            {product.dateToCompare < (new Date()).getTime() ? <ErrorOutlineTwoTone /> : product.product_name.charAt(0)}
+                                                            {product.dateToCompare < (new Date().setHours(0,0,0,0)) ? <ErrorOutlineTwoTone /> : product.product_name.charAt(0)}
                                                         </Avatar>
                                                     }
                                                     action={
@@ -206,7 +205,7 @@ export default function Album() {
                                 </Grid>
                                 <Fab onClick={() => setRedirect(true)} className={classes.fab} variant="extended" color="secondary">
                                    <AddIcon className={classes.extendedIcon} />
-                                   Add product
+                                   Add
                                 </Fab>
                             </>
                         )

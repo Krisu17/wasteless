@@ -19,6 +19,7 @@ import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
 import Slide from "@material-ui/core/Slide";
 import {path_list} from "constants/routes";
 import {AlertContext, UserContext} from "../../context";
+import { ReactComponent as Logo } from '../../assets/logo.svg';
 
 
 const drawerWidth = 240;
@@ -64,7 +65,19 @@ const useStyles = makeStyles((theme) => ({
         top: 0
     },
     appName: {
-
+        fontFamily: "monospace",
+        paddingTop: theme.spacing(0.5),
+        fontWeight: "bold"
+    },
+    logoDiv: {
+        display: "flex",
+        justifyContent: "center",
+        textAlign: "center",
+        margin: theme.spacing(1),
+        marginRight: theme.spacing(1.5)
+    },
+    logoGraphDiv:{
+        padding: theme.spacing(1)
     }
 }));
 
@@ -117,9 +130,14 @@ const MenuBar = (props) => {
     const drawer = (
         <>
             <div className={classes.toolbar} >
-                <Typography variant="h6" component="h6" className={classes.appName} aria-label="tu bedzie logo apki">
-                    WastelessLogo
-                </Typography>
+                <div className={classes.logoDiv}>
+                    <div className={classes.logoGraphDiv}>
+                        <Logo/>
+                    </div>
+                    <Typography variant="h4" component="h4" className={classes.appName}>
+                        WASTELESS
+                    </Typography>
+                </div>
             </div>
             <Divider />
             <DrawerList setRedirect={redirectToPath} userContext={user} alertC={alertC.current} />

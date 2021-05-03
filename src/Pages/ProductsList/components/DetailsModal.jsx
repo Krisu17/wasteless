@@ -22,7 +22,9 @@ const getProductData = async(token, product_id) => {
 
 const parseDate = (dateString) => {
     let d = new Date(dateString);
-    return d.getDate() + 1 + "." + d.getMonth() + 1 + "." + d.getFullYear() + 1900;
+    let day = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
+    let month = d.getMonth() < 9 ? '0' + (d.getMonth() + 1) : (d.getMonth() + 1);
+    return day + "-" + month + "-" + d.getFullYear();
 }
 
 const mapData = (data) => ({

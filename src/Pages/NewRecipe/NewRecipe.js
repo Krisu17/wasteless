@@ -1,5 +1,5 @@
 import {makeStyles} from "@material-ui/core/styles";
-import React, {useContext, useRef, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {AlertContext, UserContext} from "../../context";
 import {
     Button,
@@ -13,7 +13,7 @@ import {
     ListItemAvatar,
     ListItemSecondaryAction,
     ListItemText,
-    MenuItem,
+    MenuItem, Modal,
     Paper,
     Select,
     TextField,
@@ -31,6 +31,7 @@ import {path_list} from "../../constants/routes";
 import {Redirect} from "react-router-dom";
 import {fileToBase64} from "../../utils/fileToBase64";
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
+import Autocomplete, {createFilterOptions} from '@material-ui/lab/Autocomplete';
 
 const useStyles = makeStyles((theme) => ({
     mainDiv: {
@@ -68,6 +69,9 @@ const useStyles = makeStyles((theme) => ({
         listStyle: 'none',
         padding: theme.spacing(0.5),
         margin: 0,
+    },
+    buttons: {
+        margin: theme.spacing(1)
     }
 }))
 
@@ -83,6 +87,39 @@ const fetchCreateRecipe = async (body, token) => {
 
     if (res.status !== 201) {
         throw "Couldn't create recipe."
+    }
+}
+
+async function fetchIngredientsList(token) {
+    const url = be.INGREDIENTS;
+    const headers = getCORSHeaders(token);
+
+    const res = await fetch(url, {
+        headers,
+        method: "GET"
+    });
+
+    if (res.status !== 200) {
+        throw "Couldn't get ingredients list"
+    }
+
+    return await res.json()
+}
+
+async function fetchNewIngredient(token, ingredient_name) {
+    const url = be.INGREDIENTS;
+    const headers = getCORSHeaders(token);
+
+    const res = await fetch(url, {
+        headers,
+        method: "POST",
+        body: JSON.stringify({
+            ingredient_name: ingredient_name
+        })
+    });
+
+    if (res.status !== 201) {
+        throw "Couldn't add new ingredient"
     }
 }
 
@@ -106,7 +143,32 @@ export default function NewRecipe() {
     const [photoData, setPhotoData] = useState("");
     const [tag, setTag] = useState("");
     const [tags, setTags] = React.useState([]);
+    const [ingredientsList, setIngredientsList] = useState([]);
+    const [open, setOpenModal] = React.useState(false);
+    const filter = createFilterOptions();
 
+    const handleClose = () => {
+        setOpenModal(false);
+    };
+
+    const handleOpen = () => {
+        setOpenModal(true);
+    };
+
+    useEffect(() => {
+        loadIngredientList();
+    }, [])
+
+    const loadIngredientList = async () => {
+        try {
+            let res = await fetchIngredientsList(user.token);
+            res.forEach((e) => e.title = e.ingredient_name)
+            setIngredientsList(res)
+        } catch (err) {
+            alertC.current.showAlert(err, "error")
+        }
+
+    }
 
     const handleChangeDifficulty = (event) => {
         setDifficulty(event.target.value);
@@ -186,7 +248,7 @@ export default function NewRecipe() {
                 throw "Wrong quantity format"
             }
             if (!/^[A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ\s]+$/.test(ingredient)) {
-                throw "Wrong ingredient format"
+                throw "Wrong ingredient format. Remember to add ingredient if it isn't on list."
             }
 
             const formula = {
@@ -214,9 +276,12 @@ export default function NewRecipe() {
     const prepareIngredients = () => {
         let prepared = []
         ingredients.forEach((element) => {
-            const unit = element.unit !== "None" ? element.unit : ""
-            const text = element.quantity + " " + unit + " " + element.ingredient;
-            prepared.push(text);
+            const unit = element.unit !== "None" ? element.unit : "";
+            let ingredientList = [];
+            ingredientList.push(element.ingredient);
+            ingredientList.push(element.quantity);
+            ingredientList.push(unit);
+            prepared.push(ingredientList);
         })
         if (prepared.length === 0)
             throw "You have to add ingredients"
@@ -240,6 +305,9 @@ export default function NewRecipe() {
         tags.forEach((e) => {
             prepared.push(e.label)
         })
+        if (parseInt(time) < 20 && timeUnit === "min" && !prepared.includes("quick")){
+            prepared.push("quick")
+        }
         return prepared
     }
 
@@ -315,6 +383,12 @@ export default function NewRecipe() {
             throw "You need to attach tags"
         }
     }
+
+    const body = (
+        <div className={classes.modalPaper}>
+
+        </div>
+    );
 
     return (
         <React.Fragment>
@@ -397,11 +471,57 @@ export default function NewRecipe() {
                                     <MenuItem value={'l'}>Liter</MenuItem>
                                 </Select>
                             </FormControl>
-                            <TextField className={classes.textField} label="Ingredient" value={ingredient}
-                                       onChange={(e) => setIngredient(e.target.value)}></TextField>
+                            <Autocomplete
+                                freeSolo
+                                onChange={async (event, newValue) => {
+                                    if (newValue && newValue?.id) {
+                                        // timeout to avoid instant validation of the dialog's form.
+                                        setIngredient(newValue?.ingredient_name)
+                                    } else if (newValue) {
+                                        try {
+                                            if (!/^[A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ\s]+$/.test(newValue?.ingredient_name)) {
+                                                throw "Wrong ingredient format"
+                                            }
+                                            if (ingredientsList.filter((e) => e.ingredient_name === newValue?.ingredient_name?.toLowerCase()).length !== 0) {
+                                                throw "Ingredient already on list"
+                                            }
+                                            await fetchNewIngredient(user.token, newValue?.ingredient_name?.toLowerCase())
+                                            setIngredient(newValue?.ingredient_name?.toLowerCase())
+                                            loadIngredientList();
+                                        } catch (err) {
+                                            alertC.current.showAlert(err, "error")
+                                        }
+                                    } else {
+                                        setIngredient("")
+                                    }
+                                }}
+                                filterOptions={(options, params) => {
+                                    const filtered = filter(options, params);
+
+                                    if (params.inputValue !== '') {
+                                        let element = {
+                                            title: "Add " + params.inputValue,
+                                            ingredient_name: params.inputValue,
+                                        }
+                                        filtered.push(element);
+                                    }
+
+                                    return filtered;
+                                }}
+                                options={ingredientsList}
+                                getOptionLabel={(option) => {
+                                    try {
+                                        return option.title
+                                    } catch (e) {
+                                        console.log(e)
+                                    }
+                                }}
+                                className={classes.textField}
+                                renderInput={(params) => <TextField {...params} label="Ingredient" variant="outlined"/>}
+                            />
                         </div>
                         <div className={classes.floatingButton}>
-                            <Fab size="small" color="secondary" aria-label="add" className={classes.margin}
+                            <Fab size="small" color="secondary" aria-label="add" className={classes.buttons}
                                  onClick={handleAddIngredient}>
                                 <AddIcon/>
                             </Fab>
@@ -466,6 +586,14 @@ export default function NewRecipe() {
                     </div>
                     {redirect && <Redirect to={redirect}/>}
                 </Paper>
+                <Modal
+                    open={open}
+                    onClose={handleClose}
+                    aria-labelledby="simple-modal-title"
+                    aria-describedby="simple-modal-description"
+                >
+                    {body}
+                </Modal>
 
             </Container>
 

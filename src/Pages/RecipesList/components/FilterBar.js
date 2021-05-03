@@ -22,24 +22,15 @@ import AddIcon from "@material-ui/icons/Add";
 import {getCORSHeaders} from "../../../utils/fetchTools";
 import {be} from "../../../constants/backendSetup";
 import {path_list} from "../../../constants/routes";
+import Grid from "@material-ui/core/Grid";
+import SpeedIcon from '@material-ui/icons/Speed';
+import CakeIcon from '@material-ui/icons/Cake';
+import FastfoodIcon from '@material-ui/icons/Fastfood';
+import ClearIcon from '@material-ui/icons/Clear';
 
 const useStyles = makeStyles((theme) => ({
-    mainDiv: {
-        margin: theme.spacing(3),
-        marginBottom: theme.spacing(8),
-        paddingBottom: theme.spacing(1),
-        textAlign: "left",
-        display: "flex"
-    },
     textField: {
         width: "100%",
-    },
-    iconButton: {
-        padding: 10,
-    },
-    sorting: {
-        width: "40%",
-        justifyContent: "center"
     },
     filterBtn: {
         textAlign: "center",
@@ -48,25 +39,10 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: theme.spacing(3)
     },
     modalPaper: {
-        position: 'absolute',
-        width: "60%",
-        backgroundColor: theme.palette.background.paper,
-        border: '2px solid #000',
-        boxShadow: theme.shadows[5],
-        padding: theme.spacing(2, 4, 3),
-        top: "25%",
-        left: "35%",
-        transform: `translate(-20%, -40%)`,
-    },
-    searchDiv: {
+        margin: theme.spacing(4),
+        padding: theme.spacing(3),
         justifyContent: "center",
-        margin: theme.spacing(1),
-    },
-    modalDiv: {
-        flex: 1,
-        justifyContent: "center",
-        textAlign: "center",
-        margin: theme.spacing(1)
+        textAlign: "center"
     },
     horizontalDiv: {
         display: "flex"
@@ -79,8 +55,17 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(0.5),
         margin: 0,
     },
-    flex: {
-        margin: theme.spacing(3)
+    mainGrid: {
+        justifyContent: "center",
+        textAlign: "center",
+        margin: theme.spacing(1),
+        padding: theme.spacing(1)
+    },
+    itemGrid: {
+        margin: theme.spacing(1)
+    },
+    modalClass: {
+        overflow: "scroll"
     }
 }))
 
@@ -97,6 +82,7 @@ export default function FilterBar(props) {
     const [mealType, setMealType] = React.useState('none');
     const user = useContext((UserContext))
     const [searchValue, setSearchValue] = React.useState('');
+    const [quickFilter, setQuickFilter] = React.useState('');
 
     const handleClose = () => {
         setOpenModal(false);
@@ -113,12 +99,12 @@ export default function FilterBar(props) {
     const firstUpdate = useRef(true);
 
     useEffect(() => {
-        if(firstUpdate.current) {
+        if (firstUpdate.current) {
             firstUpdate.current = false;
             return;
         }
         filterList();
-    }, [sort, open])
+    }, [sort, open, quickFilter])
 
     const handleChangeDifficulty = (event) => {
         setDifficulty(event.target.value)
@@ -138,6 +124,9 @@ export default function FilterBar(props) {
             if (!/^[A-Za-zżźćńółęąśŻŹĆĄŚĘŁÓŃ\d\s.,?!-()]+$/.test(tag)) {
                 throw "Wrong tag format"
             }
+            if (tag.length > 20) {
+                throw "Wrong tag format"
+            }
             if (tags.filter((e) => e.label === tag).length !== 0) {
                 throw "Tag already added"
             }
@@ -154,7 +143,7 @@ export default function FilterBar(props) {
         }
     }
 
-    const handleSave = async(e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
         setOpenModal(false);
     }
@@ -173,15 +162,18 @@ export default function FilterBar(props) {
             ingredients.forEach((element) => {
                 text += "\"" + element.label + "\","
             })
-            text =text.slice(0, -1)
+            text = text.slice(0, -1)
             text += "}"
             returnValue += "ingredients=" + text + "&";
         }
-        if (tags.length !== 0) {
+        if (tags.length !== 0 || quickFilter !== "") {
             let text = "{"
             tags.forEach((element) => {
                 text += "\"" + element.label + "\","
             })
+            if (quickFilter !== "") {
+                text += "\"" + quickFilter + "\","
+            }
             text = text.slice(0, -1)
             text += "}"
             returnValue += "tags=" + text + "&";
@@ -280,9 +272,9 @@ export default function FilterBar(props) {
     }
 
     const body = (
-        <div className={classes.modalPaper}>
-            <div className={classes.flex}>
-                <div className={classes.modalDiv}>
+        <Paper className={classes.modalPaper}>
+            <Grid container className={classes.mainGrid}>
+                <Grid item xs={12} sm={4} className={classes.itemGrid}>
                     <Typography variant="h6" className={classes.title}>
                         DIFFICULTY
                     </Typography>
@@ -300,8 +292,8 @@ export default function FilterBar(props) {
                             <MenuItem value={'AD'}>Advanced</MenuItem>
                         </Select>
                     </FormControl>
-                </div>
-                <div className={classes.modalDiv}>
+                </Grid>
+                <Grid item xs={12} sm={4} className={classes.itemGrid}>
                     <Typography variant="h6" className={classes.title}>
                         TAGS
                     </Typography>
@@ -331,8 +323,8 @@ export default function FilterBar(props) {
                             );
                         })}
                     </div>
-                </div>
-                <div className={classes.modalDiv}>
+                </Grid>
+                <Grid item xs={12} sm={4} className={classes.itemGrid}>
                     <Typography variant="h6" className={classes.title}>
                         INGREDIENTS
                     </Typography>
@@ -362,8 +354,8 @@ export default function FilterBar(props) {
                             );
                         })}
                     </div>
-                </div>
-                <div className={classes.modalDiv}>
+                </Grid>
+                <Grid item xs={12} sm={4} className={classes.itemGrid}>
                     <Typography variant="h6" className={classes.title}>
                         TYPE
                     </Typography>
@@ -382,57 +374,81 @@ export default function FilterBar(props) {
                             <MenuItem value={'SP'}>Supper</MenuItem>
                         </Select>
                     </FormControl>
-                </div>
-            </div>
-            <div className={classes.filterBtn}>
-                <Button variant="contained" color="primary" endIcon={<Icon>save</Icon>}
-                        onClick={handleSave}>Save</Button>
-            </div>
-        </div>
+                </Grid>
+            </Grid>
+            {/*<div className={classes.filterBtn}>*/}
+            {/*    <Button variant="contained" color="primary" endIcon={<Icon>save</Icon>}*/}
+            {/*            onClick={handleSave}>Save</Button>*/}
+            {/*</div>*/}
+        </Paper>
     );
+
+    const addTag = async (e) => {
+        if (!tags.includes(e)) {
+            setQuickFilter(e)
+        }
+    }
 
     return (
         <div>
             <Paper>
-                <div className={classes.mainDiv}>
-                    <div className={classes.searchDiv}>
+                <Grid container className={classes.mainGrid}>
+                    <Grid item xs={12} sm={4} className={classes.itemGrid}>
                         <InputBase
                             placeholder="Search"
                             inputProps={{'aria-label': 'search google maps'}}
                             value={searchValue}
                             onChange={(e) => setSearchValue(e.target.value)}
                         />
-                        <IconButton type="submit" className={classes.iconButton} aria-label="search"
+                        <IconButton type="submit" aria-label="search"
                                     onClick={handleSearch}>
                             <SearchIcon/>
                         </IconButton>
-                    </div>
+                    </Grid>
 
-                    <FormControl className={classes.sorting}>
-                        <Select
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            value={sort}
-                            onChange={handleChangeSort}
-                        >
-                            <MenuItem value={'pd'}>Popularity <ArrowDropDownIcon/> </MenuItem>
-                            <MenuItem value={'pa'}>Popularity <ArrowDropUpIcon/> </MenuItem>
-                            <MenuItem value={'rd'}>Ranking <ArrowDropDownIcon/></MenuItem>
-                            <MenuItem value={'ra'}>Ranking <ArrowDropUpIcon/></MenuItem>
-                            <MenuItem value={'na'}>Name <ArrowDropDownIcon/></MenuItem>
-                            <MenuItem value={'nd'}>Name <ArrowDropUpIcon/></MenuItem>
-                            {/*<MenuItem value={'ta'}>Time <ArrowDropDownIcon/> </MenuItem>*/}
-                            {/*<MenuItem value={'td'}>Time <ArrowDropUpIcon/></MenuItem>*/}
-                        </Select>
-                    </FormControl>
-                    <div className={classes.filterBtn}>
+                    <Grid item xs={12} sm={4} className={classes.itemGrid}>
+                        <FormControl>
+                            <Select
+                                labelId="demo-simple-select-label"
+                                id="demo-simple-select"
+                                value={sort}
+                                onChange={handleChangeSort}
+                            >
+                                <MenuItem value={'pd'}>Popularity <ArrowDropDownIcon/> </MenuItem>
+                                <MenuItem value={'pa'}>Popularity <ArrowDropUpIcon/> </MenuItem>
+                                <MenuItem value={'rd'}>Ranking <ArrowDropDownIcon/></MenuItem>
+                                <MenuItem value={'ra'}>Ranking <ArrowDropUpIcon/></MenuItem>
+                                <MenuItem value={'na'}>Name <ArrowDropDownIcon/></MenuItem>
+                                <MenuItem value={'nd'}>Name <ArrowDropUpIcon/></MenuItem>
+                                {/*<MenuItem value={'ta'}>Time <ArrowDropDownIcon/> </MenuItem>*/}
+                                {/*<MenuItem value={'td'}>Time <ArrowDropUpIcon/></MenuItem>*/}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={4} className={classes.itemGrid}>
                         <Button variant="contained" color="primary" endIcon={<Icon>check</Icon>}
                                 onClick={handleOpen}>Filter</Button>
-                    </div>
-                </div>
+                    </Grid>
+                    <Grid item xs={12} sm={4} className={classes.itemGrid}>
+                        <IconButton color="primary" onClick={(e) => addTag("quick")}>
+                            <SpeedIcon/>
+                        </IconButton>
+                        <IconButton color="primary" onClick={(e) => addTag("sweet")}>
+                            <CakeIcon/>
+                        </IconButton>
+                        <IconButton color="primary" onClick={(e) => addTag("dry")}>
+                            <FastfoodIcon/>
+                        </IconButton>
+                        <IconButton color="secondary" onClick={(e) => addTag("")}>
+                            <ClearIcon/>
+                        </IconButton>
+                    </Grid>
+                </Grid>
 
             </Paper>
             <Modal
+                className={classes.modalClass}
                 open={open}
                 onClose={handleClose}
                 aria-labelledby="simple-modal-title"
