@@ -2,7 +2,14 @@ import NewProduct from "../Pages/NewProduct";
 import FridgesList from "../Pages/FridgesList/FridgesList";
 import ProductsList from "../Pages/ProductsList/ProductsList"
 import UserPage from "../Pages/UserPage/UserPage";
-import FuckingLoginPage from "../Pages/LoginPage/FuckingLoginPage";
+import LoginPage from "Pages/LoginPage/LoginPage";
+import RegisterPage from "../Pages/RegisterPage/RegisterPage";
+import NewRecipe from "../Pages/NewRecipe/NewRecipe";
+import RecipePage from "../Pages/RecipePage/RecipePage";
+import RecipesList from "../Pages/RecipesList/RecipesList";
+import SendResetEmail from "../Pages/ResetPassword/SendResetEmail";
+import ResetPassword from "../Pages/ResetPassword/ResetPassword";
+
 
 export const path_list = {
     DASHBOARD: {
@@ -36,9 +43,31 @@ export const path_list = {
     },
     FRIDGE_NEW_PRODUCT: {
         route: "/user/fridge/:fridge_id/new-product",
-        redirect: (fridge_id) => `/user/${fridge_id}/new-product`,
+        redirect: (fridge_id) => `/user/fridge/${fridge_id}/new-product`,
         name: "Add product"
     },
+    RECIPES_LIST: {
+        route: "/recipes",
+        name: "Recipes list"
+    },
+    NEW_RECIPE: {
+        route: "/user/recipe/new-recipe",
+        name: "Add recipe"
+    },
+    RECIPE_PAGE: {
+        route: "/recipes/:recipe_id",
+        redirect: (recipe_id) => `/recipes/${recipe_id}`,
+        name: "Recipe details"
+    },
+    RESET_PASSWORD_REQUEST: {
+        route: "/reset_password",
+        name: "Send reset password email"
+    },
+    RESET_PASSWORD: {
+        route: "/password-reset/:reset_token",
+        redirect: (reset_token) => `/password-reset/${reset_token}`,
+        name: "Reset password"
+    }
 }
 
 export default [
@@ -49,7 +78,12 @@ export default [
     },
     {
         path: path_list.LOGIN.route,
-        component: FuckingLoginPage,
+        component: LoginPage,
+        exact: true
+    },
+    {
+        path: path_list.REGISTER.route,
+        component: RegisterPage,
         exact: true
     },
     {
@@ -66,5 +100,31 @@ export default [
         path: path_list.FRIDGE_NEW_PRODUCT.route,
         component: NewProduct,
         exact: true
-    }
+    },
+    {
+        path: path_list.NEW_RECIPE.route,
+        component: NewRecipe,
+        exact: true
+    },
+    {
+        path: path_list.RECIPE_PAGE.route,
+        component: RecipePage,
+        exact: true
+    },
+    {
+        path: path_list.RECIPES_LIST.route,
+        component: RecipesList,
+        exact: true
+    },
+    {
+        path: path_list.RESET_PASSWORD_REQUEST.route,
+        component: SendResetEmail,
+        exact: true
+    },
+    {
+        path: path_list.RESET_PASSWORD.route,
+        component: ResetPassword,
+        exact: false
+    },
 ];
+

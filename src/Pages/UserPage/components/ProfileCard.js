@@ -48,9 +48,9 @@ export default function ProfileCard() {
                     <TextField className={classes.textField} label="Username"
                                defaultValue={user?.data?.username}
                                disabled/>
-                    <TextField className={classes.textField} label="Name" defaultValue={user?.data?.name}
+                    <TextField className={classes.textField} label="Name" defaultValue={user?.data?.first_name}
                                disabled/>
-                    <TextField className={classes.textField} label="Surname" defaultValue={user?.data?.surname}
+                    <TextField className={classes.textField} label="Surname" defaultValue={user?.data?.last_name}
                                disabled/>
                     <TextField className={classes.textField} label="Email" defaultValue={user?.data?.email}
                                disabled/>

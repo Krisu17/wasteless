@@ -49,7 +49,7 @@ export const UserProvider = (props) => {
     const [token, setToken] = useState(
         decryptCookie(cookies.get("token"))
     );
-    const [data, setData] = useState(cookies.get("data"));
+    const [data, setData] = useState(decryptCookie(cookies.get("data")));
     const [type, setType] = useState(cookies.get("type"));
 
     const user = {

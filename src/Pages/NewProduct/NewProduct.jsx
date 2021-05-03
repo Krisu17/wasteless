@@ -31,10 +31,12 @@ const NewProduct = (props) => {
     const {fridge_id} = useParams();
     const [loading, setLoading] = useState(false);
     const [redirect, setRedirect] = useState(false);
+    const [barcodeExists, setBarcodeExists] = useState(true);
     const [validated, setValidated] = useState(false);
     const [barcode, setBarcode] = useState("");
     const [data, setData] = useState({
         product_name: "",
+        category: "",
         quantity_g: 0,
         quantity: 1,
         carbohydrates: 0,
@@ -52,7 +54,7 @@ const NewProduct = (props) => {
     const userC = useContext(UserContext);
     const alertC = useRef(useContext(AlertContext));
     const steps = {
-        "Enter barcode": <BarcodeForm data={barcode} setData={setBarcode} />,
+        "Enter barcode": <BarcodeForm data={barcode} setData={setBarcode} barcodeRequired={barcodeExists} setBarcodeRequired={setBarcodeExists} />,
         "Get product data": <ProductDataForm data={data} setData={setData} barcode={barcode}/>,
         "Enter additional info": <AdditionalInfoForm data={data} setData={setData}/>
     };
@@ -62,7 +64,7 @@ const NewProduct = (props) => {
         setLoading(true);
         try {
             await addProduct(userC.token, data);
-            setRedirect(path_list.FRIDGE);
+            setRedirect(path_list.FRIDGE.redirect(fridge_id));
         } catch(ex) {
             console.log(ex);
             alertC.current.showAlert(ex, "error")
@@ -73,10 +75,10 @@ const NewProduct = (props) => {
 
     const fetchHandleComponent = (handleGoBack) => (
         <div>
-            <Button variant="contained" color="primary" type="submit" fullWidth disabled={loading}>
+            <Button variant="contained" color="primary" type="submit" disabled={loading}>
                 Add product
             </Button>
-            <Button color="primary" fullWidth onClick={handleGoBack}>
+            <Button color="primary" onClick={handleGoBack}>
                 Back
             </Button>
         </div>
@@ -89,7 +91,7 @@ const NewProduct = (props) => {
                     <HorizontalStepper
                         onDoneComponent={fetchHandleComponent}
                         steps={steps}
-                        disableNext={barcode === ""}
+                        disableNext={barcode === "" && barcodeExists}
                     />
                 </form>
             </React.Fragment>
