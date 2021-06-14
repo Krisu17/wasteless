@@ -85,6 +85,7 @@ export default function RecipePage() {
     const {recipe_id} = useParams();
     const recipeId = recipe_id;
     const alertC = useRef(useContext(AlertContext));
+    const [instructions, setInstructions] = useState([]);
 
 
     useEffect(() => {
@@ -93,6 +94,7 @@ export default function RecipePage() {
             try {
                 let res = await getRecipe(token);
                 await setRecipe([res]);
+                mapInstructions(res?.instructions);
             } catch(e) {
                 console.log(e);
                 alertC.current.showAlert("Something went wrong while trying to fetch recipe details", "error");
@@ -122,6 +124,19 @@ export default function RecipePage() {
 
         }
     };
+
+    function mapInstructions(incomingInstructions) {
+        if (incomingInstructions !== null && incomingInstructions !== undefined) {
+            let splited = incomingInstructions.split("\n");
+            let stepTab = [];
+            splited.forEach(function(step) {
+                if(step !== "") {
+                    stepTab.push(step);
+                }
+            })
+            setInstructions(stepTab);
+        }
+    }
 
 
     return (
@@ -222,9 +237,19 @@ export default function RecipePage() {
                                         {redirect && <Redirect to={redirect}/>}
                                         <Grid item xs={12}  md={7}>
                                             <Paper className={classes.paper}>
-
                                                 <Title>Preparation details</Title>
-                                                <Typography>{recipe?.instructions}</Typography>
+                                                <React.Fragment>
+                                                    <Table >
+                                                        <TableBody>
+                                                            {instructions.map((row, index) => (
+                                                                <StyledTableRow  key={index}>
+                                                                    <StyledTableCell>{row}</StyledTableCell >
+                                                                </StyledTableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </React.Fragment>
+                                                <h5> </h5>
                                             </Paper>
                                         </Grid>
                                         <Grid item xs={12}>

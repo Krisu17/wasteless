@@ -17,6 +17,7 @@ export const be = {
     VALIDATE_RESET_TOKEN: `${backend_path}/password-reset/validate_token/`,
     RESET_PASSWORD: `${backend_path}/password-reset/confirm/`,
     INGREDIENTS: `${backend_path}/ingredients/`,
+    NOTIFICATION: `${backend_path}/notification/`,
 };
 
 export const off_API = `${product_api}/product/`;
